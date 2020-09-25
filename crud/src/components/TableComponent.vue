@@ -18,6 +18,7 @@
         />
       </v-card-title>
       <v-data-table
+            @click:row="showProduct"
             :headers="table.headers"
             :items="data"
             :search="search"
@@ -64,6 +65,14 @@ export default {
     },
     deleteItem(item) {
       this.$store.dispatch("deleteProduct", item)
+    },
+    showProduct(item) {
+      this.$router.push({
+        name: "aboutProduct",
+        params: {
+          id: item.artnumber
+        }
+      })
     }
   }
 }

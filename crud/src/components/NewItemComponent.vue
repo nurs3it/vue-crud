@@ -13,31 +13,38 @@
     </template>
     <v-card>
       <v-card-title>
-        <span class="headline">{{  isEdit ? 'Edit item' : 'New item' }}</span>
+        <span class="headline">{{ isEdit ? 'Edit item' : 'New item' }}</span>
       </v-card-title>
       <v-card-text>
         <v-container>
-          <v-row>
-            <template v-if="item && item.headers">
-              <template v-for="(row, indx) in item.headers">
-                <v-col
-                    cols="6"
-                    sm="6"
-                    md="6"
-                    v-if="row.value !== 'artnumber' && row.value !== 'actions'"
-                    :key="indx"
-                >
-                  <v-text-field
-                      :value="formItem[row.value]"
-                      v-model="formItem[row.value]"
-                      :label="row.text"
-                      required
-                  ></v-text-field>
-
-                </v-col>
+          <v-form
+              style="width: 100%"
+              ref="form"
+              v-model="valid"
+              lazy-validation
+          >
+            <v-row>
+              <template v-if="item && item.headers">
+                <template v-for="(row, indx) in item.headers">
+                  <v-col
+                      cols="6"
+                      sm="6"
+                      md="6"
+                      v-if="row.value !== 'artnumber' && row.value !== 'actions'"
+                      :key="indx"
+                  >
+                    <v-text-field
+                        :value="formItem[row.value]"
+                        v-model="formItem[row.value]"
+                        :label="row.text"
+                        :required="row.required"
+                        :rules="requireSimple"
+                    ></v-text-field>
+                  </v-col>
+                </template>
               </template>
-            </template>
-          </v-row>
+            </v-row>
+          </v-form>
         </v-container>
       </v-card-text>
       <v-card-actions>
@@ -47,13 +54,15 @@
             text
             @click="dialog = false"
         >
-          Close</v-btn>
+          Close
+        </v-btn>
         <v-btn
             color="blue darken-1"
             text
             @click="saveIt"
         >
-          Save</v-btn>
+          Save
+        </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -66,11 +75,16 @@ export default {
   data() {
     return {
       dialog: false,
-      formItem: null
+      formItem: null,
+      valid: true,
+      requireSimple: [
+        v => !!v || 'Name is required',
+        v => (v && v.length > 0) || 'Min 1 simbol',
+      ],
     }
   },
   watch: {
-    "dialog" () {
+    "dialog"() {
       if (!this.dialog) {
         this.newItem();
       }
@@ -88,14 +102,30 @@ export default {
     newItem() {
       this.formItem = this.item.actions.newItem();
     },
+    validate() {
+      this.$refs.form.validate()
+    },
+    reset() {
+      this.$refs.form.reset()
+    },
+    resetValidation() {
+      this.$refs.form.resetValidation()
+    },
     saveIt() {
+      this.validate();
       if (!this.isEdit) {
         this.formItem.artnumber = this.$store.getters.lastId + 1;
         this.$store.dispatch('saveNewItem', this.formItem);
-        this.dialog = false;
+        if (this.valid) {
+          this.dialog = false;
+        }
+        this.resetValidation();
       } else {
         this.$store.dispatch('saveEditItem', this.formItem);
-        this.dialog = false;
+        if (this.valid) {
+          this.dialog = false;
+        }
+        this.resetValidation();
       }
     }
   }

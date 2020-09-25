@@ -41,7 +41,7 @@ export default new Vuex.Store({
             return state.data
         },
         lastId: (state) => {
-            return state.data[state.data.length-1].artnumber
+            return Number(state.data[state.data.length-1].artnumber)
         }
     }
 })

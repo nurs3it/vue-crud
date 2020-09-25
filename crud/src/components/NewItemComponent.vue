@@ -2,6 +2,19 @@
   <v-dialog v-model="dialog" persistent max-width="600px">
     <template v-slot:activator="{ on, attrs }">
       <v-btn
+          v-if="isAboutPage"
+          class="mx-2"
+          fab
+          dark
+          color="indigo"
+          v-bind="attrs"
+          v-on="on"
+          @click="$emit('edit')"
+      >
+        <v-icon dark>mdi-pencil</v-icon>
+      </v-btn>
+      <v-btn
+          v-else
           color="primary"
           dark
           v-bind="attrs"
@@ -22,6 +35,7 @@
               ref="form"
               v-model="valid"
               lazy-validation
+              v-if="formItem"
           >
             <v-row>
               <template v-if="item && item.headers">
@@ -71,7 +85,7 @@
 <script>
 export default {
   name: "NewItemComponent",
-  props: ["item"],
+  props: ["item", "isAboutPage"],
   data() {
     return {
       dialog: false,
@@ -116,16 +130,18 @@ export default {
       if (!this.isEdit) {
         this.formItem.artnumber = this.$store.getters.lastId + 1;
         this.$store.dispatch('saveNewItem', this.formItem);
-        if (this.valid) {
-          this.dialog = false;
-        }
+        this.closeAfterSave();
         this.resetValidation();
       } else {
         this.$store.dispatch('saveEditItem', this.formItem);
-        if (this.valid) {
-          this.dialog = false;
-        }
+        this.closeAfterSave();
         this.resetValidation();
+      }
+    },
+    closeAfterSave() {
+      if (this.valid) {
+        this.$emit("update");
+        this.dialog = false;
       }
     }
   }
